@@ -118,15 +118,17 @@ function fetch_userdata(){
     SHOOT_NAME='aws-ha'
     kubectl --kubeconfig=dev/sa_kubeconfig.yaml create -f <(printf '{"spec":{"expirationSeconds":3600}}') --raw /apis/core.gardener.cloud/v1beta1/namespaces/${NAMESPACE}/shoots/${SHOOT_NAME}/adminkubeconfig | jq -r ".status.kubeconfig" | base64 -d > dev/seed_kubeconfig.yaml
     #export KUBECONFIG=dev/seed_kubeconfig.yaml
-    userData=$(kubectl --kubeconfig=dev/seed_kubeconfig.yaml get secret shoot--mcm-ci--aws-oot-target-worker-1-z1-18556 -n shoot--mcm-ci--aws-oot-target -oyaml | yq eval '.data.userData')
+    userData=$(kubectl --kubeconfig=dev/seed_kubeconfig.yaml get secret shoot--mcm-ci--aws-oot-target-worker-1-z1-18556 -n shoot--mcm-ci--aws-oot-target -oyaml | yq '.data.userData')
     echo $userData
     export KUBECONFIG=dev/sa_kubeconfig.yaml
 }
 
 function fetch_credentials(){
    #export KUBECONFIG=dev/sa_kubeconfig.yaml
-   accessKeyID=$(kubectl --kubeconfig=dev/sa_kubeconfig.yaml get secret shoot-operator-aws-team -n garden-core -oyaml | yq eval '.data.accessKeyID')
-   secretAccessKey=$(kubectl --kubeconfig=dev/sa_kubeconfig.yaml get secret shoot-operator-aws-team -n garden-core -oyaml | yq eval '.data.secretAccessKey')
+   #accessKeyID=$(kubectl --kubeconfig=dev/sa_kubeconfig.yaml get secret shoot-operator-aws-team -n garden-core -oyaml | yq '.data.accessKeyID')
+   kubectl --kubeconfig=dev/sa_kubeconfig.yaml get secret shoot-operator-aws-team -n garden-core -oyaml > dev/tmp_secret.yaml
+   accessKeyID=$(yq '.data.accessKeyID' dev/tmp_secret.yaml)
+   secretAccessKey=$(kubectl --kubeconfig=dev/sa_kubeconfig.yaml get secret shoot-operator-aws-team -n garden-core -oyaml | yq '.data.secretAccessKey')
    echo $accessKeyID
    echo $secretAccessKey
 }
